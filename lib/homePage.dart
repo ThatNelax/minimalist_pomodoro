@@ -1,8 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:minimalist_pomodoro/settingsPage.dart';
+import 'package:minimalist_pomodoro/presetsPage.dart';
+import 'package:minimalist_pomodoro/timerSetting.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,8 +11,31 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class MenuEntry {
+  final String value;
+  final String label;
 
+  const MenuEntry({required this.value, required this.label});
+}
+
+class _HomePageState extends State<HomePage> {
+  TimerMode timerMode = TimerMode.focus;
+  late TimerSetting activeTimer;
+  static final List<MenuEntry> menuEntries = TimerSetting
+      .getTimerNames() // Call the method to get the List<String>
+      .map<MenuEntry>((String name) => MenuEntry(value: name, label: name))
+      .toList();
+  static final List<DropdownMenuEntry<String>> timerMenuEntries = TimerSetting
+      .getTimerNames() // Gets List<String>
+      .map<DropdownMenuEntry<String>>((String name) {
+    return DropdownMenuEntry<String>(
+      value: name,       // The actual value (e.g., 'Pomodoro')
+      label: name,       // The text the user sees
+      // optional: leadingIcon, trailingIcon, enabled, style
+    );
+  }).toList(); // Convert the iterable result to a List
+  String dropdownValue = TimerSetting.getTimerNames()[0];
+  
   int currentPage = 0;
 
   int setHour = 0;
@@ -109,7 +132,7 @@ class _HomePageState extends State<HomePage> {
       format = DateFormat("mm:ss");
     DateTime time = DateTime(0, 0, 0, currentHour, currentMinute, currentSecond);
     String formatted = format.format(time);
-    return Text(formatted, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 40),);
+    return Text(formatted, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 80),);
   }
 
   @override
@@ -130,6 +153,30 @@ class _HomePageState extends State<HomePage> {
         Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SegmentedButton(
+                style: ButtonStyle(side: WidgetStatePropertyAll(BorderSide(color: Theme.of(context).colorScheme.primary)) ),
+                  segments: const <ButtonSegment<TimerMode>>[
+                ButtonSegment(
+                    label: Text("Focus"),
+                    icon: Icon(Icons.desk),
+                    value: TimerMode.focus
+                ),
+                ButtonSegment(
+                  label: Text("Short Break"),
+                    icon: Icon(Icons.timer),
+                    value: TimerMode.short),
+                ButtonSegment(
+                    label: Text("Long Break"),
+                    icon: Icon(Icons.bedtime),
+                    value: TimerMode.long),
+                ], 
+                selected: <TimerMode>{timerMode},
+                onSelectionChanged: (Set<TimerMode> mode) {setState(() {
+                  timerMode = mode.first;
+                });
+              }
+              ),
+              SizedBox(height: 120,),
               SizedBox(
                 width: 300,
                 height: 300,
@@ -138,32 +185,43 @@ class _HomePageState extends State<HomePage> {
                   alignment: Alignment.center,
                   children: [
                     CircularProgressIndicator(
-                      strokeWidth: 20,
+                      backgroundColor: Colors.white,
+                      strokeCap: StrokeCap.round,
+                      strokeWidth: 15,
                       value: progress,
                     ),
                     Center(child: timeDisplay()),
                   ],
                 ),
               ),
-              SizedBox(height: 150,),
+              SizedBox(height: 120,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  buildButtons()
+                  //buildButtons()
                 ],
               ),
               SizedBox(height: 50,),
-              ElevatedButton(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage())),
-                  style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary)),
-                  child:
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.settings, color: Theme.of(context).colorScheme.onPrimary,),
-                      SizedBox(width: 10,),
-                      Text("settings", style: TextStyle(color:Theme.of(context).colorScheme.onPrimary, fontSize: 15),), ],
-                  )
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownMenu<String>(
+                    menuStyle: MenuStyle(elevation: WidgetStatePropertyAll(20), backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.secondary),surfaceTintColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary) ),
+                    inputDecorationTheme: InputDecorationTheme(enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary,width: 3)), suffixIconColor: Theme.of(context).colorScheme.primary,),
+                    textStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    initialSelection: dropdownValue,
+                      dropdownMenuEntries: timerMenuEntries,
+                    onSelected: (String? value) => setState(() {
+                      dropdownValue = value!;
+                    }),
+                  ),
+                  SizedBox(width: 20,),
+                  IconButton(
+                    icon: Icon(Icons.settings),
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PresetsPage())),
+                      style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary)),
+                  ),
+                ],
               )
             ]
         ),
@@ -194,3 +252,5 @@ enum TimerState{
   stopped,
   started,
 }
+
+enum TimerMode { focus, short, long }
