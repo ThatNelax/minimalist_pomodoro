@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:minimalist_pomodoro/timerSetting.dart';
+import 'package:minimalist_pomodoro/timerPreset.dart';
 import 'editPage.dart';
 
 class PresetsPage extends StatefulWidget {
@@ -10,23 +10,22 @@ class PresetsPage extends StatefulWidget {
 }
 
 class _PresetsPageState extends State<PresetsPage> {
-  List<TimerSetting> getTimerSettings() {
+  List<TimerPreset> getTimerSettings() {
     return List.empty();
   }
 
   void addTimerSetting() {}
-  List<TimerSetting> timerSettings = [
-    TimerSetting.defaultTimer,
-    TimerSetting.defaultTimer2,
+  List<TimerPreset> timerSettings = [
+    TimerPresetManager.defaultTimer,
   ];
 
 
   void showBottomPicker() {}
-  void applyTimerSetting(TimerSetting timerSetting) {
+  void applyTimerSetting(TimerPreset timerSetting) {
     print("Confirming apply for $timerSetting.name");
   }
 
-  void editTimerSetting(TimerSetting timerSetting) {
+  void editTimerSetting(TimerPreset timerSetting) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => EditPage(timerSetting: timerSetting,)));
   }
 
@@ -36,8 +35,7 @@ class _PresetsPageState extends State<PresetsPage> {
       appBar: AppBar(title: Text("Timer Presets")),
       floatingActionButton: FloatingActionButton(
         onPressed: () => editTimerSetting(
-          TimerSetting(
-            icon: Icon(Icons.desktop_mac),
+          TimerPreset(
             name: '',
             focusTime: 240,
             shortBreak: 120,
@@ -80,7 +78,6 @@ class _PresetsPageState extends State<PresetsPage> {
                             subtitle: Text(
                               "Focus : ${timerSettings[i].focusTime ~/ 60} min \nShort Break : ${timerSettings[i].shortBreak ~/ 60} min \nLong Break : ${timerSettings[i].longBreak ~/ 60} min",
                             ),
-                            leading: timerSettings[i].icon,
                             trailing: IconButton.filled(
                               onPressed: () =>
                                   editTimerSetting(timerSettings[i]),

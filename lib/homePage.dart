@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:minimalist_pomodoro/presetsPage.dart';
-import 'package:minimalist_pomodoro/timerSetting.dart';
+import 'package:minimalist_pomodoro/timerPreset.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,28 +20,21 @@ class MenuEntry {
 
 class _HomePageState extends State<HomePage> {
   TimerMode timerMode = TimerMode.focus;
-  late TimerSetting activeTimer;
-  static final List<MenuEntry> menuEntries = TimerSetting
-      .getTimerNames() // Call the method to get the List<String>
-      .map<MenuEntry>((String name) => MenuEntry(value: name, label: name))
-      .toList();
-  static final List<DropdownMenuEntry<String>> timerMenuEntries = TimerSetting
-      .getTimerNames() // Gets List<String>
+  late TimerPreset activeTimer;
+  static final List<DropdownMenuEntry<String>> timerMenuEntries = TimerPresetManager
+      .getTimerNames()
       .map<DropdownMenuEntry<String>>((String name) {
     return DropdownMenuEntry<String>(
-      value: name,       // The actual value (e.g., 'Pomodoro')
-      label: name,       // The text the user sees
-      // optional: leadingIcon, trailingIcon, enabled, style
+      value: name,      
+      label: name,       
     );
-  }).toList(); // Convert the iterable result to a List
-  String dropdownValue = TimerSetting.getTimerNames()[0];
+  }).toList(); 
+  String dropdownValue = TimerPresetManager.getTimerNames()[0];
+  
+  late TimerPreset activePreset;
   
   int currentPage = 0;
-
-  int setHour = 0;
-  int setMinute = 2;
-  int setSecond = 0;
-
+  
   int currentHour = 0;
   int currentMinute = 1;
   int currentSecond = 0;
@@ -92,9 +85,9 @@ class _HomePageState extends State<HomePage> {
 
   void resetTimer(){
     setState(() {
-      currentHour = setHour;
-      currentMinute = setMinute;
-      currentSecond = setSecond;
+      currentHour = activePreset.focusTime ~/ 3600;
+      currentMinute = activePreset.focusTime ~/ 60;
+      currentSecond = activePreset.focusTime % 3600;
 
       remainingSeconds = totalSeconds;
       progress = 1;
@@ -105,22 +98,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       timerState = TimerState.stopped;
       timer?.cancel();
-    });
-  }
-
-  void setTimer(Duration time) {
-    setState(() {
-      setHour = time.inHours;
-      setMinute = time.inMinutes % 60;
-      setSecond = time.inSeconds % 60;
-      currentHour = setHour;
-      currentMinute = setMinute;
-      currentSecond = setSecond;
-      totalSeconds = (currentHour * 3600 + currentMinute * 60 + currentSecond);
-      if (totalSeconds == 0) return;
-
-      remainingSeconds = totalSeconds;
-      progress = 1.0;
     });
   }
 
@@ -173,6 +150,17 @@ class _HomePageState extends State<HomePage> {
                 selected: <TimerMode>{timerMode},
                 onSelectionChanged: (Set<TimerMode> mode) {setState(() {
                   timerMode = mode.first;
+                  
+                  switch(mode.first){
+                    case TimerMode.focus:
+                      
+                    case TimerMode.short:
+                      // TODO: Handle this case.
+                      throw UnimplementedError();
+                    case TimerMode.long:
+                      // TODO: Handle this case.
+                      throw UnimplementedError();
+                  }
                 });
               }
               ),

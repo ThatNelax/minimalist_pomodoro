@@ -1,20 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:minimalist_pomodoro/timerSetting.dart';
+import 'package:minimalist_pomodoro/timerPreset.dart';
 
 class EditPage extends StatefulWidget {
   
-  const EditPage({super.key, required this.timerSetting});
+  EditPage({super.key, required this.timerSetting});
 
-  final TimerSetting timerSetting;
-
+  final TimerPreset timerSetting;
+  
+  late TextEditingController name = TextEditingController(text: "${timerSetting.name}");
+  late TextEditingController focusTime = TextEditingController(text: "${timerSetting.focusTime ~/ 60}");
+  late TextEditingController shortBreak = TextEditingController(text: "${timerSetting.shortBreak ~/ 60}");
+  late TextEditingController longBreak = TextEditingController(text:  "${timerSetting.longBreak ~/ 60}");
+  
   @override
   State<EditPage> createState() => _EditPageState();
 }
 
 class _EditPageState extends State<EditPage> {
-  TextEditingController focusTime = TextEditingController();
 
+
+  // In _EditPageState.confirmEdit()
   void confirmEdit() {
+    // Safely parse and convert minutes to seconds
+    int focusSec = int.tryParse(widget.focusTime.text) ?? 0;
+    int shortSec = int.tryParse(widget.shortBreak.text) ?? 0;
+    int longSec = int.tryParse(widget.longBreak.text) ?? 0;
+
+    TimerPreset newPreset = TimerPreset(
+        name: widget.name.text,
+        focusTime: focusSec * 60,   // Multiply by 60
+        shortBreak: shortSec * 60, // Multiply by 60
+        longBreak: longSec * 60   // Multiply by 60
+    );
+
+    TimerPresetManager.savePreset(newPreset);
     Navigator.pop(context);
   }
   @override
@@ -56,9 +75,9 @@ class _EditPageState extends State<EditPage> {
                         ),
                         SizedBox(
                           width: 70,
-                          child: TextFormField(
+                          child: TextField(
+                            controller: widget.name,
                             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            initialValue: widget.timerSetting.name,
                             textAlign: TextAlign.end,
                             decoration: InputDecoration(
                               border: InputBorder.none,
@@ -77,9 +96,9 @@ class _EditPageState extends State<EditPage> {
                         ),
                         SizedBox(
                           width: 70,
-                          child: TextFormField(
+                          child: TextField(
+                            controller: widget.focusTime,
                             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            initialValue: "${widget.timerSetting.focusTime ~/ 60}",
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.end,
                             decoration: InputDecoration(
@@ -100,9 +119,9 @@ class _EditPageState extends State<EditPage> {
                         ),
                         SizedBox(
                           width: 70,
-                          child: TextFormField(
+                          child: TextField(
+                            controller: widget.shortBreak,
                             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            initialValue: "${widget.timerSetting.shortBreak ~/ 60}",
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.end,
                             decoration: InputDecoration(
@@ -123,9 +142,9 @@ class _EditPageState extends State<EditPage> {
                         ),
                         SizedBox(
                           width: 70,
-                          child: TextFormField(
+                          child: TextField(
+                            controller: widget.longBreak,
                             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            initialValue: "${widget.timerSetting.longBreak ~/ 60}",
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.end,
                             decoration: InputDecoration(
