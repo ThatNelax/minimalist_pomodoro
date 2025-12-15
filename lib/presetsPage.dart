@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:minimalist_pomodoro/databaseManager.dart';
 import 'package:minimalist_pomodoro/timerPreset.dart';
 import 'editPage.dart';
 
@@ -10,15 +11,22 @@ class PresetsPage extends StatefulWidget {
 }
 
 class _PresetsPageState extends State<PresetsPage> {
-  List<TimerPreset> getTimerSettings() {
-    return List.empty();
+  List<TimerPreset> timerEntries = const [];
+
+  @override
+  void initState(){
+    super.initState();
+    _loadData();
   }
 
-  void addTimerSetting() {}
-  List<TimerPreset> timerSettings = [
-    TimerPresetManager.defaultTimer,
-  ];
+  Future<void> _loadData() async {
+      await DatabaseManager.turnOnDatabase();
+      List<TimerPreset> fetchedEntries = await DatabaseManager.getAllEntries();
 
+      setState(() {
+        timerEntries = fetchedEntries;
+      });
+  }
 
   void showBottomPicker() {}
   void applyTimerSetting(TimerPreset timerSetting) {
@@ -36,7 +44,7 @@ class _PresetsPageState extends State<PresetsPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => editTimerSetting(
           TimerPreset(
-            name: '',
+            timerName: '',
             focusTime: 240,
             shortBreak: 120,
             longBreak: 180,
@@ -51,10 +59,10 @@ class _PresetsPageState extends State<PresetsPage> {
           children: [
             Expanded(
               child: ListView.builder(
-                itemCount: timerSettings.length,
+                itemCount: timerEntries.length,
                 itemBuilder: (BuildContext context, int i) {
                   return GestureDetector(
-                    onTap: () => applyTimerSetting(timerSettings[i]),
+                    onTap: () => applyTimerSetting(timerEntries[i]),
                     child: SizedBox(
                       height: 150,
                       child: Card(
@@ -69,18 +77,18 @@ class _PresetsPageState extends State<PresetsPage> {
                           padding: const EdgeInsets.all(10.0),
                           child: ListTile(
                             title: Text(
-                              timerSettings[i].name,
+                              timerEntries[i].timerName,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.primary,
                                 fontSize: 17,
                               ),
                             ),
                             subtitle: Text(
-                              "Focus : ${timerSettings[i].focusTime ~/ 60} min \nShort Break : ${timerSettings[i].shortBreak ~/ 60} min \nLong Break : ${timerSettings[i].longBreak ~/ 60} min",
+                              "Focus : ${timerEntries[i].focusTime ~/ 60} min \nShort Break : ${timerEntries[i].shortBreak ~/ 60} min \nLong Break : ${timerEntries[i].longBreak ~/ 60} min",
                             ),
                             trailing: IconButton.filled(
                               onPressed: () =>
-                                  editTimerSetting(timerSettings[i]),
+                                  editTimerSetting(timerEntries[i]),
                               icon: Icon(Icons.edit),
                               style: ButtonStyle(
                                 backgroundColor: WidgetStatePropertyAll(

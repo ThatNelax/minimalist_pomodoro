@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:minimalist_pomodoro/databaseManager.dart';
 import 'package:minimalist_pomodoro/timerPreset.dart';
 
 class EditPage extends StatefulWidget {
@@ -7,7 +8,7 @@ class EditPage extends StatefulWidget {
 
   final TimerPreset timerSetting;
   
-  late TextEditingController name = TextEditingController(text: "${timerSetting.name}");
+  late TextEditingController name = TextEditingController(text: "${timerSetting.timerName}");
   late TextEditingController focusTime = TextEditingController(text: "${timerSetting.focusTime ~/ 60}");
   late TextEditingController shortBreak = TextEditingController(text: "${timerSetting.shortBreak ~/ 60}");
   late TextEditingController longBreak = TextEditingController(text:  "${timerSetting.longBreak ~/ 60}");
@@ -27,13 +28,13 @@ class _EditPageState extends State<EditPage> {
     int longSec = int.tryParse(widget.longBreak.text) ?? 0;
 
     TimerPreset newPreset = TimerPreset(
-        name: widget.name.text,
+        timerName: widget.name.text,
         focusTime: focusSec * 60,   // Multiply by 60
         shortBreak: shortSec * 60, // Multiply by 60
         longBreak: longSec * 60   // Multiply by 60
     );
 
-    TimerPresetManager.savePreset(newPreset);
+    DatabaseManager.addEntry(timerName: newPreset.timerName, focusTime: newPreset.focusTime, shortBreak: newPreset.shortBreak, longBreak: newPreset.longBreak);
     Navigator.pop(context);
   }
   @override

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:minimalist_pomodoro/databaseManager.dart';
 import 'package:minimalist_pomodoro/presetsPage.dart';
 import 'package:minimalist_pomodoro/timerPreset.dart';
 
@@ -19,18 +20,19 @@ class MenuEntry {
 }
 
 class _HomePageState extends State<HomePage> {
+  late Future<void> _dbInitialization;
+  @override
+  void initState() {
+    super.initState();
+    _dbInitialization = DatabaseManager.turnOnDatabase();
+  }
+
   TimerMode timerMode = TimerMode.focus;
   late TimerPreset activeTimer;
-  static final List<DropdownMenuEntry<String>> timerMenuEntries = TimerPresetManager
-      .getTimerNames()
-      .map<DropdownMenuEntry<String>>((String name) {
-    return DropdownMenuEntry<String>(
-      value: name,      
-      label: name,       
-    );
-  }).toList(); 
-  String dropdownValue = TimerPresetManager.getTimerNames()[0];
-  
+
+  List<String> timerNames = [];
+  String dropdownValue = '';
+
   late TimerPreset activePreset;
   
   int currentPage = 0;
@@ -146,14 +148,14 @@ class _HomePageState extends State<HomePage> {
                     label: Text("Long Break"),
                     icon: Icon(Icons.bedtime),
                     value: TimerMode.long),
-                ], 
+                ],
                 selected: <TimerMode>{timerMode},
                 onSelectionChanged: (Set<TimerMode> mode) {setState(() {
                   timerMode = mode.first;
-                  
+
                   switch(mode.first){
                     case TimerMode.focus:
-                      
+
                     case TimerMode.short:
                       // TODO: Handle this case.
                       throw UnimplementedError();
@@ -190,26 +192,74 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               SizedBox(height: 50,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  DropdownMenu<String>(
-                    menuStyle: MenuStyle(elevation: WidgetStatePropertyAll(20), backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.secondary),surfaceTintColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary) ),
-                    inputDecorationTheme: InputDecorationTheme(enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary,width: 3)), suffixIconColor: Theme.of(context).colorScheme.primary,),
-                    textStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                    initialSelection: dropdownValue,
-                      dropdownMenuEntries: timerMenuEntries,
-                    onSelected: (String? value) => setState(() {
-                      dropdownValue = value!;
-                    }),
-                  ),
-                  SizedBox(width: 20,),
-                  IconButton(
-                    icon: Icon(Icons.settings),
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PresetsPage())),
-                      style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary)),
-                  ),
-                ],
+              FutureBuilder(
+                future: _dbInitialization,
+                builder: (context, asyncSnapshot) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FutureBuilder<List<String>>(
+                          future: DatabaseManager.getAllEntryName(),
+                          builder: (context, asyncSnapshot) {
+                            if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+                              return const CircularProgressIndicator();
+                            }
+                  
+                            if (asyncSnapshot.hasError) {
+                              return Text('Error loading presets: ${asyncSnapshot.error}');
+                            }
+                  
+                            if (!asyncSnapshot.hasData || asyncSnapshot.data!.isEmpty) {
+                              return const Text('No presets available. Add one in settings.');
+                            }
+                  
+                            final List<String> fetchedNames = asyncSnapshot.data!;
+                  
+                            if (dropdownValue.isEmpty && fetchedNames.isNotEmpty) {
+                              scheduleMicrotask(() {
+                                setState(() {
+                                  dropdownValue = fetchedNames.first;
+                                });
+                              });
+                              return const CircularProgressIndicator();
+                            }
+                  
+                            final List<DropdownMenuEntry<String>> timerMenuEntries = fetchedNames
+                                .map<DropdownMenuEntry<String>>((String name) {
+                              return DropdownMenuEntry<String>(
+                                value: name,
+                                label: name,
+                              );
+                            }).toList();
+                  
+                            return DropdownMenu<String>(
+                              menuStyle: MenuStyle(elevation: WidgetStatePropertyAll(20), backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.secondary),surfaceTintColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary) ),
+                              inputDecorationTheme: InputDecorationTheme(enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary,width: 3)), suffixIconColor: Theme.of(context).colorScheme.primary,),
+                              textStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  
+                              initialSelection: dropdownValue,
+                  
+                              dropdownMenuEntries: timerMenuEntries,
+                  
+                              onSelected: (String? value) {
+                                if (value != null) {
+                                  setState(() {
+                                    dropdownValue = value;
+                                  });
+                                }
+                              },
+                            );
+                          }
+                      ),
+                      SizedBox(width: 20,),
+                      IconButton(
+                        icon: Icon(Icons.settings),
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PresetsPage())),
+                        style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary)),
+                      ),
+                    ],
+                  );
+                }
               )
             ]
         ),
