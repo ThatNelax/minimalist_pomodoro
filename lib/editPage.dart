@@ -3,46 +3,40 @@ import 'package:minimalist_pomodoro/databaseManager.dart';
 import 'package:minimalist_pomodoro/timerPreset.dart';
 
 class EditPage extends StatefulWidget {
-  
-  EditPage({super.key, required this.timerSetting});
 
-  final TimerPreset timerSetting;
-  
-  late TextEditingController name = TextEditingController(text: "${timerSetting.timerName}");
-  late TextEditingController focusTime = TextEditingController(text: "${timerSetting.focusTime ~/ 60}");
-  late TextEditingController shortBreak = TextEditingController(text: "${timerSetting.shortBreak ~/ 60}");
-  late TextEditingController longBreak = TextEditingController(text:  "${timerSetting.longBreak ~/ 60}");
+  EditPage({this.isEditing = false});
+  EditPage.edit({required this.timerSetting, this.isEditing = true});
+  late TimerPreset timerSetting;
+
+  late bool isEditing;
   
   @override
   State<EditPage> createState() => _EditPageState();
 }
 
 class _EditPageState extends State<EditPage> {
+  late String timerName;
+  late int focusTime;
+  late int shortBreak;
+  late int longBreak;
 
-
-  // In _EditPageState.confirmEdit()
   void confirmEdit() {
-    // Safely parse and convert minutes to seconds
-    int focusSec = int.tryParse(widget.focusTime.text) ?? 0;
-    int shortSec = int.tryParse(widget.shortBreak.text) ?? 0;
-    int longSec = int.tryParse(widget.longBreak.text) ?? 0;
-
-    TimerPreset newPreset = TimerPreset(
-        timerName: widget.name.text,
-        focusTime: focusSec * 60,   // Multiply by 60
-        shortBreak: shortSec * 60, // Multiply by 60
-        longBreak: longSec * 60   // Multiply by 60
-    );
-
-    DatabaseManager.addEntry(timerName: newPreset.timerName, focusTime: newPreset.focusTime, shortBreak: newPreset.shortBreak, longBreak: newPreset.longBreak);
+    if(!widget.isEditing)
+      DatabaseManager.addEntry(timerName: timerName, focusTime: focusTime, shortBreak: shortBreak, longBreak: longBreak);
+    else
+      DatabaseManager.editEntry(oldTimerName: widget.timerSetting.timerName, timerName: timerName, focusTime: focusTime, shortBreak: shortBreak, longBreak: longBreak);
     Navigator.pop(context);
   }
+  void deleteEntry(){
+    DatabaseManager.deleteWithName(timerName);
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Timer Settings", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),),
-        automaticallyImplyLeading: false,
+        title: Text(widget.isEditing ? "Edit" : "Add", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),),
       ),
       floatingActionButton: SizedBox(
         width: 350,
@@ -52,114 +46,81 @@ class _EditPageState extends State<EditPage> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: Padding(
-        padding: const EdgeInsets.only(top: 8, right: 16, left: 16, bottom: 30),
-        child: SizedBox(
-          width: 500,
-          height: 275,
-          child: Container(
-            decoration: BoxDecoration(
+      body: Form(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              Card(
                 color: Theme.of(context).colorScheme.secondary,
-                borderRadius: BorderRadius.circular(16)
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Center(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Timer Name : ",
-                          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface),
+                child:
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        initialValue: widget.isEditing ? widget.timerSetting.timerName : null,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        textAlign: TextAlign.end,
+                        decoration: InputDecoration(
+                          labelText: "Timer Name",
+                          border: OutlineInputBorder(),
                         ),
-                        SizedBox(
-                          width: 70,
-                          child: TextField(
-                            controller: widget.name,
-                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            textAlign: TextAlign.end,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Focus Time : ",
-                          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface),
-                        ),
-                        SizedBox(
-                          width: 70,
-                          child: TextField(
-                            controller: widget.focusTime,
-                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.end,
-                            decoration: InputDecoration(
-                                border: InputBorder.none,
-                                suffixText: "min"
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Short Break : ",
-                          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface),
-                        ),
-                        SizedBox(
-                          width: 70,
-                          child: TextField(
-                            controller: widget.shortBreak,
-                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.end,
-                            decoration: InputDecoration(
-                                border: InputBorder.none,
-                                suffixText: "min"
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Long Break : ",
-                          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface),
-                        ),
-                        SizedBox(
-                          width: 70,
-                          child: TextField(
-                            controller: widget.longBreak,
-                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.end,
-                            decoration: InputDecoration(
-                                border: InputBorder.none,
-                                suffixText: "min"
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        onSaved: (value) => timerName = value!,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+              Card(
+                color: Theme.of(context).colorScheme.secondary,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        initialValue: widget.isEditing ? "${widget.timerSetting.focusTime}" : null,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.end,
+                        decoration: InputDecoration(
+                            labelText: "Focus Time",
+                            border: OutlineInputBorder(),
+                            suffixText: "min"
+                        ),
+                        onSaved: (value) => focusTime = int.parse(value!),
+                      ),
+                      SizedBox(height: 30,),
+                      TextFormField(
+                        initialValue: widget.isEditing ? "${widget.timerSetting.shortBreak}"  : null,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.end,
+                        decoration: InputDecoration(
+                            labelText: "Short Break",
+                            border: OutlineInputBorder(),
+                            suffixText: "min"
+                        ),
+                        onSaved: (value) => shortBreak = int.parse(value!),
+                      ),
+                      SizedBox(height: 30,),
+                      TextFormField(
+                        initialValue: widget.isEditing ? "${widget.timerSetting.longBreak}" : null,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.end,
+                        decoration: InputDecoration(
+                            labelText: "Long Break",
+                            border: OutlineInputBorder(),
+                            suffixText: "min"
+                        ),
+                        onSaved: (value) => longBreak = int.parse(value!),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

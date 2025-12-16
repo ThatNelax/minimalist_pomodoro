@@ -88,7 +88,7 @@ class DatabaseManager {
     return entries;
   }
 
-  static Future<void> deleteWithBarcode(String timerName) async {
+  static Future<void> deleteWithName(String timerName) async {
     await db.rawQuery('DELETE FROM TimerTable WHERE timerName = $timerName');
   }
 
