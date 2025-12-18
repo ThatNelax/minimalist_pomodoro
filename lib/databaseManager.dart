@@ -89,7 +89,8 @@ class DatabaseManager {
   }
 
   static Future<void> deleteWithName(String timerName) async {
-    await db.rawQuery('DELETE FROM TimerTable WHERE timerName = $timerName');
+    print("Entered timer name : " + timerName);
+    await db.rawQuery('DELETE FROM TimerTable WHERE timerName = \'$timerName\'' );
   }
 
   static Future<void> editEntry({required String oldTimerName, required String timerName, required int focusTime, required int shortBreak, required int longBreak}) async {

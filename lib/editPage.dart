@@ -15,17 +15,23 @@ class EditPage extends StatefulWidget {
 }
 
 class _EditPageState extends State<EditPage> {
+  final _formKey = GlobalKey<FormState>();
   late String timerName;
   late int focusTime;
   late int shortBreak;
   late int longBreak;
 
-  void confirmEdit() {
-    if(!widget.isEditing)
-      DatabaseManager.addEntry(timerName: timerName, focusTime: focusTime, shortBreak: shortBreak, longBreak: longBreak);
-    else
-      DatabaseManager.editEntry(oldTimerName: widget.timerSetting.timerName, timerName: timerName, focusTime: focusTime, shortBreak: shortBreak, longBreak: longBreak);
-    Navigator.pop(context);
+  void confirmEdit() async {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+      if(!widget.isEditing) {
+        await DatabaseManager.addEntry(timerName: timerName, focusTime: focusTime, shortBreak: shortBreak, longBreak: longBreak);
+      } else {
+        await DatabaseManager.editEntry(oldTimerName: widget.timerSetting.timerName, timerName: timerName, focusTime: focusTime, shortBreak: shortBreak, longBreak: longBreak);
+      }
+      Navigator.pop(context);
+
+    }
   }
   void deleteEntry(){
     DatabaseManager.deleteWithName(timerName);
@@ -47,6 +53,7 @@ class _EditPageState extends State<EditPage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: Form(
+        key: _formKey,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(

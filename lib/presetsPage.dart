@@ -27,17 +27,19 @@ class _PresetsPageState extends State<PresetsPage> {
         timerEntries = fetchedEntries;
       });
   }
-
-  void applyTimerSetting(TimerPreset timerSetting) {
-    print("Confirming apply for $timerSetting.name");
+  void editTimerSetting(TimerPreset timerSetting) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) => EditPage.edit(timerSetting: timerSetting)));
+      _loadData();
   }
 
-  void editTimerSetting(TimerPreset timerSetting) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => EditPage.edit(timerSetting: timerSetting)));
+  void addTimerSetting() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) => EditPage()));
+      _loadData();
   }
-
-  void addTimerSetting() => Navigator.push(context, MaterialPageRoute(builder: (context) => EditPage()));
-
+  void deleteTimerSetting(String name) async {
+    await DatabaseManager.deleteWithName(name);
+    _loadData();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,22 +57,21 @@ class _PresetsPageState extends State<PresetsPage> {
               child: ListView.builder(
                 itemCount: timerEntries.length,
                 itemBuilder: (BuildContext context, int i) {
-                  return Dismissible(
-                    key: Key(i.toString()),
-                    child: SizedBox(
-                      height: 150,
+                  return SizedBox(
+                    height: 100,
+                    child: GestureDetector(
+                      onTap: () => editTimerSetting(timerEntries[i]),
                       child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadiusGeometry.all(
-                            Radius.circular(20),
-                          ),
-                        ),
-                        elevation: 5,
-                        child: Card(
-                          color: Theme.of(context).colorScheme.secondary,
-                          child: Row(
-
-                          )
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(20),
+                          tileColor: Theme.of(context).colorScheme.secondary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(20)),
+                          title: Text(timerEntries[i].timerName),
+                          trailing:
+                            IconButton(
+                                style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary)),
+                                onPressed: () => deleteTimerSetting(timerEntries[i].timerName),
+                                icon: Icon(Icons.delete)),
                         ),
                       ),
                     ),
