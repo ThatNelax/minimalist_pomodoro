@@ -4,12 +4,17 @@ import 'package:minimalist_pomodoro/timerPreset.dart';
 
 class EditPage extends StatefulWidget {
 
-  EditPage({this.isEditing = false});
-  EditPage.edit({required this.timerSetting, this.isEditing = true});
-  late TimerPreset timerSetting;
+  EditPage({super.key, this.isEditing = false, this.timerSetting});
 
-  late bool isEditing;
-  
+  EditPage.edit({
+    super.key,
+    required this.timerSetting,
+    this.isEditing = true
+  });
+
+  final TimerPreset? timerSetting;
+  final bool isEditing;
+
   @override
   State<EditPage> createState() => _EditPageState();
 }
@@ -22,12 +27,12 @@ class _EditPageState extends State<EditPage> {
   late int longBreak;
 
   void confirmEdit() async {
-      if (_formKey.currentState!.validate()) {
+      if(true) {
         _formKey.currentState!.save();
       if(!widget.isEditing) {
         await DatabaseManager.addEntry(timerName: timerName, focusTime: focusTime, shortBreak: shortBreak, longBreak: longBreak);
       } else {
-        await DatabaseManager.editEntry(oldTimerName: widget.timerSetting.timerName, timerName: timerName, focusTime: focusTime, shortBreak: shortBreak, longBreak: longBreak);
+        await DatabaseManager.editEntry(oldTimerName: widget.timerSetting!.timerName, timerName: timerName, focusTime: focusTime, shortBreak: shortBreak, longBreak: longBreak);
       }
       Navigator.pop(context);
 
@@ -66,7 +71,7 @@ class _EditPageState extends State<EditPage> {
                   child: Column(
                     children: [
                       TextFormField(
-                        initialValue: widget.isEditing ? widget.timerSetting.timerName : null,
+                        initialValue: widget.isEditing ? widget.timerSetting!.timerName : null,
                         style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                         textAlign: TextAlign.end,
                         decoration: InputDecoration(
@@ -86,7 +91,7 @@ class _EditPageState extends State<EditPage> {
                   child: Column(
                     children: [
                       TextFormField(
-                        initialValue: widget.isEditing ? "${widget.timerSetting.focusTime}" : null,
+                        initialValue: widget.isEditing ? "${widget.timerSetting!.focusTime}" : null,
                         style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                         keyboardType: TextInputType.number,
                         textAlign: TextAlign.end,
@@ -99,7 +104,7 @@ class _EditPageState extends State<EditPage> {
                       ),
                       SizedBox(height: 30,),
                       TextFormField(
-                        initialValue: widget.isEditing ? "${widget.timerSetting.shortBreak}"  : null,
+                        initialValue: widget.isEditing ? "${widget.timerSetting!.shortBreak}"  : null,
                         style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                         keyboardType: TextInputType.number,
                         textAlign: TextAlign.end,
@@ -112,7 +117,7 @@ class _EditPageState extends State<EditPage> {
                       ),
                       SizedBox(height: 30,),
                       TextFormField(
-                        initialValue: widget.isEditing ? "${widget.timerSetting.longBreak}" : null,
+                        initialValue: widget.isEditing ? "${widget.timerSetting!.longBreak}" : null,
                         style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                         keyboardType: TextInputType.number,
                         textAlign: TextAlign.end,

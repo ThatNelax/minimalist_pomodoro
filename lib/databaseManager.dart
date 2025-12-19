@@ -93,14 +93,23 @@ class DatabaseManager {
     await db.rawQuery('DELETE FROM TimerTable WHERE timerName = \'$timerName\'' );
   }
 
-  static Future<void> editEntry({required String oldTimerName, required String timerName, required int focusTime, required int shortBreak, required int longBreak}) async {
-    await db.rawQuery(
-        'UPDATE TimerTable SET '
-            'barcodeNo = \'$timerName\', '
-            'productName = focusTime, '
-            'category = $shortBreak, '
-            'unitPrice = $longBreak, '
-            'WHERE barcodeNo = \'$oldTimerName\''
+  static Future<void> editEntry({
+    required String oldTimerName,
+    required String timerName,
+    required int focusTime,
+    required int shortBreak,
+    required int longBreak
+  }) async {
+    await db.update(
+      'TimerTable',
+      {
+        'timerName': timerName,
+        'focusTime': focusTime,
+        'shortBreak': shortBreak,
+        'longBreak': longBreak,
+      },
+      where: 'timerName = ?',
+      whereArgs: [oldTimerName],
     );
   }
 }

@@ -70,8 +70,8 @@ class _HomePageState extends State<HomePage> {
             currentSecond = remainingSeconds % 60;
             progress = remainingSeconds / totalSeconds;
           });
-        } else {
-          stopTimer();
+        } else if(remainingSeconds == 0){
+          resetTimer();
         }
       });
     });
@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
       remainingSeconds = totalSeconds;
       currentHour = totalSeconds ~/ 3600;
       currentMinute = (totalSeconds % 3600) ~/ 60;
-      currentSecond = totalSeconds % 60;
+      currentSecond = 0;
       progress = 1.0;
     });
   }
@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage> {
       DateFormat(pattern).format(time),
       style: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
-        fontSize: 80,
+        fontSize: 70,
         fontWeight: FontWeight.w200,
       ),
     );
@@ -150,9 +150,10 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 80),
           GestureDetector(
             onTap: timerState == TimerState.started ? stopTimer : startTimer,
+            onDoubleTap: resetTimer,
             child: SizedBox(
-              width: 300,
-              height: 300,
+              width: 350,
+              height: 350,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
